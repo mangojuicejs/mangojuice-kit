@@ -23,9 +23,7 @@ module.exports = {
   moduleFileExtensions: ["ts", "tsx", "js", "jsx", "json"],
   moduleNameMapper: {
     "^mangojuice-router": "<rootDir>/packages/mangojuice-router/src",
-    "^mangojuice-dom": "<rootDir>/packages/mangojuice-dom/src",
-    "^mangojuice-intl": "<rootDir>/packages/mangojuice-intl/src",
-    "^mangojuice-form": "<rootDir>/packages/mangojuice-form/src"
+    "^mangojuice-dom": "<rootDir>/packages/mangojuice-dom/src"
   },
   rootDir: __dirname,
   testMatch: [

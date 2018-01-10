@@ -1,11 +1,32 @@
 import { delay, utils } from 'mangojuice-core';
 
 
+// Utils
 const isWindowDefined =
   typeof document !== "undefined" && document.querySelectorAll;
 
 const querySelector = selector =>
   document.querySelectorAll(selector);
+
+const returnResult = (res) => res.result;
+
+function internalFindDomNodes(selector, attempts = 10, wait = 50) {
+  if (!isWindowDefined) {
+    return [];
+  }
+  const newAttempt = attempts - 1;
+  if (newAttempt >= 0) {
+    const elems = querySelector(selector);
+    if (!elems.length) {
+      return this.call(delay, wait).then(() => {
+        return this.call(internalFindDomNodes, selector, newAttempt, wait);
+      }).then(returnResult);
+    } else {
+      return elems;
+    }
+  }
+  return [];
+}
 
 
 /**
@@ -16,23 +37,9 @@ const querySelector = selector =>
  * @param  {number} wait
  * @return {Promise}
  */
-export function findDomNodes(selector, attempts = 100, wait = 50) {
-  if (!isWindowDefined) {
-    return null;
-  }
-
-  const newAttempt = attempts - 1;
-  if (newAttempt >= 0) {
-    const elems = querySelector(selector);
-    if (!elems.length) {
-      return this.call(delay, wait).then(() => {
-        return this.call(findDomNodes, selector, newAttempt, wait);
-      });
-    } else {
-      return elems;
-    }
-  }
-  return null;
+export function findDomNodes(...args) {
+  const realArgs = utils.is.string(args[0]) ? args : args.slice(1);
+  return this.call(internalFindDomNodes, ...realArgs).then(returnResult);
 }
 
 /**
