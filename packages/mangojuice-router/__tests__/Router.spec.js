@@ -107,7 +107,7 @@ describe("Router basic usage cases", () => {
     const cmd = logicOf(app.model.router).Push(route);
     const link = Router.link(app.model.router, route);
 
-    expect(link).toEqual({ onClick: cmd, href: '/news/321/' });
+    expect(link).toEqual({ onClick: cmd, href: '/news/321' });
   });
 
   it("should provide a way to create a link with command creator", async () => {
@@ -157,7 +157,7 @@ describe("Router basic usage cases", () => {
     await app.proc.exec(logicOf(app.model.router).Push(NewsRoutes.Category({ category: '321' }, {a: '123'})));
 
     expect(history.length).toEqual(2);
-    expect(history.entries[1].pathname).toEqual('/news/321/');
+    expect(history.entries[1].pathname).toEqual('/news/321');
     expect(history.entries[1].search).toEqual('?a=123');
   });
 
@@ -169,7 +169,7 @@ describe("Router basic usage cases", () => {
     await app.proc.exec(logicOf(app.model.router).Replace(NewsRoutes.Category({ category: '321' }, {a: '123'})));
 
     expect(history.length).toEqual(1);
-    expect(history.entries[0].pathname).toEqual('/news/321/');
+    expect(history.entries[0].pathname).toEqual('/news/321');
     expect(history.entries[0].search).toEqual('?a=123');
   });
 

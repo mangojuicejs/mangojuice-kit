@@ -1,4 +1,4 @@
-import UrlPattern from "url-pattern";
+import pathToRegexp from "path-to-regexp";
 import qs from 'qs';
 import { utils, logicOf } from "mangojuice-core";
 
@@ -120,6 +120,33 @@ const flattenRoutesTree = (routesTree, res = []) => {
 }
 
 /**
+ * Creates "url-pattern" like macther object
+ * @param  {string}  path
+ * @param  {Boolean} hasChildren
+ * @return {Object}
+ */
+const createMatcher = (path, hasChildren) => {
+  const parts = pathToRegexp.parse(path);
+  const params = [];
+  const re = pathToRegexp.tokensToRegExp(parts, params, {
+    end: !hasChildren
+  });
+  return {
+    names: params.map(x => x.name),
+    stringify: pathToRegexp.tokensToFunction(parts),
+    match: (execPath) => {
+      const matchRes = re.exec(execPath);
+      if (!matchRes) return null;
+      const restPath = execPath.substr(matchRes[0].length);
+      return matchRes.slice(1).reduce((acc, val, i) => {
+        acc[params[i].name] = val;
+        return acc;
+      }, { _: restPath });
+    }
+  }
+}
+
+/**
  * By given list of commands create a set of maps with only
  * route commands. Returned maps represents a tree structure
  * of routes.
@@ -135,7 +162,7 @@ export const createRouteMaps = (routesTree) => {
   // Helper to track uniqueness of names in patterns
   const checkNamesUniq = names => {
     names.forEach(n => {
-      if (n !== "_" && usedNames[n]) {
+      if (n !== '_' && usedNames[n]) {
         throw new Error(`Param name "${n}" already used by some route`);
       } else {
         usedNames[n] = true;
@@ -148,9 +175,7 @@ export const createRouteMaps = (routesTree) => {
     .filter(cmd => cmd && cmd.routeId);
 
   routes.forEach(r => {
-    const suffix = r.children ? "(/*)" : "/";
-    const normPatt = r.pattern.replace(/\/+$/, "") + suffix;
-    const matcher = new UrlPattern(normPatt);
+    const matcher = createMatcher(r.pattern, !!r.children);
     checkNamesUniq(matcher.names);
     map[r.routeId] = matcher;
 
@@ -191,7 +216,7 @@ export const findPath = (routesObj, routeId, path) => {
     let childRoute, childRes;
     if (children) {
       for (let i = 0; i < children.length; i++) {
-        const maybeChildRes = findPath(routesObj, children[i].routeId, `/${res._}`);
+        const maybeChildRes = findPath(routesObj, children[i].routeId, res._);
         if (maybeChildRes) {
           childRoute = children[i];
           childRes = maybeChildRes;
