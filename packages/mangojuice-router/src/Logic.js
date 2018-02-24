@@ -1,6 +1,6 @@
 import createBrowserHistory from "history/createBrowserHistory";
 import qs from "qs";
-import { task, utils } from "mangojuice-core";
+import { task, utils, message, procOf } from "mangojuice-core";
 import { createRouteMaps, findFirstPath, createHref } from './Utils';
 import * as Messages from './Messages';
 
@@ -14,30 +14,6 @@ export type Model = {
   changedRoutes: { [key: string]: boolean },
   leftRoutes: { [key: string]: boolean }
 };
-
-// Internal utils
-function createYieldableHistory = (history) => {
-  let resolve, buffer = [];
-  const historyChangeHandler = (location) => {
-    if (resolve) {
-      resolve(location);
-      resolve = null;
-    } else {
-      buffer.push(location);
-    }
-  };
-  const next = () => {
-    return new Promise(r => {
-      if (buffer.length) {
-        r(buffer.shift());
-      } else {
-        resolve = r;
-      }
-    });
-  };
-  history.listen(historyChangeHandler);
-  return { next };
-}
 
 /**
  * By given routes tree create a Router logic and returns it
@@ -61,7 +37,7 @@ class Router {
 
     return [
       initModel,
-      task(this.subscribeToHistory)
+      this.subscribeToHistory
     ];
   }
 
@@ -75,8 +51,16 @@ class Router {
     }
   }
 
-  *subscribeToHistory() {
-    const { history, routes, request } = this;
+  destroy() {
+    if (this.stopHistoryListener) {
+      this.stopHistoryListener();
+    }
+  }
+
+  subscribeToHistory() {
+    const { history, routes, request, model } = this;
+    const historyListener = (location) =>
+      procOf(model).update(message(Messages.ChangeLocation, location));
 
     // Set default route on root path
     if (history) {
@@ -86,20 +70,12 @@ class Router {
       if (defaultRoute && history.location.pathname === "/") {
         history.replace(defaultRoute.pattern + history.location.search);
       }
+      this.stopHistoryListener = history.listen(historyListener);
     }
 
     // Yield init location change
     const initLocation = request ? request.location : history.location;
-    yield message(Messages.ChangeLocation, initLocation);
-
-    // Subscribe to history changes
-    if (history) {
-      const historyChannel = createYieldableHistory(history);
-      while(true) {
-        const nextLocation = await historyChannel.next();
-        yield message(Messages.ChangeLocation, nextLocation);
-      }
-    }
+    historyListener(initLocation);
   }
 
   handleLocationChange(location) {
@@ -143,7 +119,7 @@ class Router {
         changedRoutes,
         appearedOnce
       },
-      message(Messages.LocationChanged, location);
+      message(Messages.LocationChanged, location)
     ];
   }
 

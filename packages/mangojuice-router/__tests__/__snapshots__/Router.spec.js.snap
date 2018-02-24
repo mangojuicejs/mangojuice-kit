@@ -1,0 +1,27 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Router basic usage cases should allow only unique params in patterns 1`] = `
+Array [
+  [Error: Param name "id" already used by some route],
+]
+`;
+
+exports[`Router basic usage cases should provide a way to create a link 1`] = `
+Object {
+  "href": "/news/321",
+  "onClick": [Function],
+}
+`;
+
+exports[`Router basic usage cases should provide a way to create a link with command creator 1`] = `
+Object {
+  "href": "/news/",
+  "onClick": [Function],
+}
+`;
+
+exports[`Router basic usage cases should track params uniqueness in children 1`] = `
+Array [
+  [Error: Param name "id" already used by some route],
+]
+`;

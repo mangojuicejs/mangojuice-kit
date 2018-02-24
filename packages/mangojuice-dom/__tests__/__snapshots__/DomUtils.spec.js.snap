@@ -1,0 +1,61 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`DomUtils #findDomNodes should find DOM node instantly if exists 1`] = `
+Array [
+  TaskCmd {
+    "customArgs": Array [
+      "#test-id",
+    ],
+    "executor": [Function],
+    "successCmd": [Function],
+    "task": [Function],
+  },
+]
+`;
+
+exports[`DomUtils #findDomNodes should find DOM node instantly if exists 2`] = `
+Array [
+  Array [
+    Promise {},
+  ],
+]
+`;
+
+exports[`DomUtils #findDomNodes should return empty value if no element found 1`] = `
+Array [
+  TaskCmd {
+    "executor": [Function],
+    "successCmd": [Function],
+    "task": [Function],
+  },
+]
+`;
+
+exports[`DomUtils #findDomNodes should return empty value if no element found 2`] = `
+Array [
+  Array [
+    Promise {},
+  ],
+]
+`;
+
+exports[`DomUtils #findDomNodes should wait for DOM element to appear 1`] = `
+Array [
+  TaskCmd {
+    "customArgs": Array [
+      "#test-id",
+    ],
+    "executor": [Function],
+    "successCmd": [Function],
+    "task": [Function],
+  },
+]
+`;
+
+exports[`DomUtils #findDomNodes should wait for DOM element to appear 2`] = `
+Array [
+  Array [
+    Promise {},
+  ],
+]
+`;

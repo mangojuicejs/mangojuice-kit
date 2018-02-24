@@ -1,4 +1,4 @@
-import { child, logicOf } from "mangojuice-core";
+import { child, logicOf, procOf, message } from "mangojuice-core";
 import { runWithTracking } from "mangojuice-test";
 import createMemoryHistory from "history/createMemoryHistory";
 import Router from "mangojuice-router";
@@ -81,7 +81,7 @@ describe("Router basic usage cases", () => {
     const SharedBlock = createSharedBlock(MainRoutes);
     const { app, commandNames } = await runWithTracking({ app: SharedBlock });
 
-    await procOf(app.model.router).update(Router.Messages.Push(NewsRoutes.Category({ category: '321' })));
+    await procOf(app.model.router).update(message(Router.Messages.Push, NewsRoutes.Category({ category: '321' })));
 
     expect(Router.isChanged(app.model.router, MainRoutes.News)).toBeTruthy();
     expect(Router.isChanged(app.model.router, NewsRoutes.Category)).toBeTruthy();
@@ -124,9 +124,9 @@ describe("Router basic usage cases", () => {
   it("should push new item to browser history", async () => {
     const SharedBlock = createSharedBlock(MainRoutes);
     const { app, commandNames } = await runWithTracking({ app: SharedBlock });
-    const history = logicOf(app.model.router).meta.history;
+    const history = logicOf(app.model.router).history;
 
-    await procOf(app.model.router).update(Router.Messages.Push(NewsRoutes.Category({ category: '321' }, {a: '123'})));
+    await procOf(app.model.router).update(message(Router.Messages.Push, NewsRoutes.Category({ category: '321' }, {a: '123'})));
 
     expect(history.length).toEqual(2);
     expect(history.entries[1].pathname).toEqual('/news/321');
@@ -136,9 +136,9 @@ describe("Router basic usage cases", () => {
   it("should replace last item in browser history", async () => {
     const SharedBlock = createSharedBlock(MainRoutes);
     const { app, commandNames } = await runWithTracking({ app: SharedBlock });
-    const history = logicOf(app.model.router).meta.history;
+    const history = logicOf(app.model.router).history;
 
-    await procOf(app.model.router).update(Router.Messages.Replace(NewsRoutes.Category({ category: '321' }, {a: '123'})));
+    await procOf(app.model.router).update(message(Router.Messages.Replace, NewsRoutes.Category({ category: '321' }, {a: '123'})));
 
     expect(history.length).toEqual(1);
     expect(history.entries[0].pathname).toEqual('/news/321');
@@ -148,11 +148,11 @@ describe("Router basic usage cases", () => {
   it("should provide a way to navigate only query with keeping existing by default", async () => {
     const SharedBlock = createSharedBlock(MainRoutes);
     const { app, commandNames } = await runWithTracking({ app: SharedBlock });
-    const history = logicOf(app.model.router).meta.history;
+    const history = logicOf(app.model.router).history;
 
-    await procOf(app.model.router).update(Router.Messages.Push(Router.Query({ a: '123' })));
-    await procOf(app.model.router).update(Router.Messages.Push(Router.Query({ b: '321' })));
-    await procOf(app.model.router).update(Router.Messages.Push(Router.Query({ c: '111' })));
+    await procOf(app.model.router).update(message(Router.Messages.Push, Router.Query({ a: '123' })));
+    await procOf(app.model.router).update(message(Router.Messages.Push, Router.Query({ b: '321' })));
+    await procOf(app.model.router).update(message(Router.Messages.Push, Router.Query({ c: '111' })));
 
     expect(history.length).toEqual(4);
     expect(history.entries[3].pathname).toEqual('/articles');
@@ -162,11 +162,11 @@ describe("Router basic usage cases", () => {
   it("should provide a way replace query with new one", async () => {
     const SharedBlock = createSharedBlock(MainRoutes);
     const { app, commandNames } = await runWithTracking({ app: SharedBlock });
-    const history = logicOf(app.model.router).meta.history;
+    const history = logicOf(app.model.router).history;
 
-    await procOf(app.model.router).update(Router.Messages.Push(Router.Query({ a: '123' })));
-    await procOf(app.model.router).update(Router.Messages.Push(Router.Query({ b: '321' }, false)));
-    await procOf(app.model.router).update(Router.Messages.Push(Router.Query({ c: '111' })));
+    await procOf(app.model.router).update(message(Router.Messages.Push, Router.Query({ a: '123' })));
+    await procOf(app.model.router).update(message(Router.Messages.Push, Router.Query({ b: '321' }, false)));
+    await procOf(app.model.router).update(message(Router.Messages.Push, Router.Query({ c: '111' })));
 
     expect(history.length).toEqual(4);
     expect(history.entries[3].pathname).toEqual('/articles');
@@ -179,7 +179,9 @@ describe("Router basic usage cases", () => {
       News: Router.route('/news/:id'),
     }
     const SharedBlock = createSharedBlock(WrongRoutes);
-    await expect(runWithTracking({ app: SharedBlock })).rejects.toBeDefined();
+    const { errors } = await runWithTracking({ app: SharedBlock, expectErrors: true });
+
+    expect(errors).toMatchSnapshot();
   });
 
   it("should track params uniqueness in children", async () => {
@@ -191,6 +193,8 @@ describe("Router basic usage cases", () => {
       News: Router.route('/news/:newsId', WrongChildreRoutes),
     }
     const SharedBlock = createSharedBlock(WrongRoutes);
-    await expect(runWithTracking({ app: SharedBlock })).rejects.toBeDefined();
+    const { errors } = await runWithTracking({ app: SharedBlock, expectErrors: true });
+
+    expect(errors).toMatchSnapshot();
   });
 });

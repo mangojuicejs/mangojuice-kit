@@ -1,6 +1,6 @@
 import Dom from 'mangojuice-dom';
 import { runWithTracking } from 'mangojuice-test';
-import { delay, logicOf, cmd, task } from 'mangojuice-core';
+import { utils, logicOf, task } from 'mangojuice-core';
 
 
 describe('DomUtils', () => {
@@ -16,67 +16,60 @@ describe('DomUtils', () => {
 
     it('should find DOM node instantly if exists', async () => {
       const Block = {
-        createModel: () => ({}),
         Logic: class TestLogic {
-          @cmd FindNode() {
+          create() {
             return task(Dom.Tasks.findDomNodes)
               .args('#test-id')
-              .success(this.FoundNode);
+              .success(this.foundNode);
           }
-          @cmd FoundNode() {}
+          foundNode = jest.fn()
         }
       };
       document.body.appendChild(elem);
       const { app, commands } = await runWithTracking({ app: Block });
-      const prom = app.proc.exec(logicOf(app.model).FindNode);
-      const res = await prom;
 
-      expect(commands).toHaveLength(2);
-      expect(commands[1].args[0]).toHaveLength(1);
-      expect(commands[1].args[0][0]).toEqual(elem);
+      expect(commands).toMatchSnapshot();
+      expect(app.proc.logic.foundNode.mock.calls).toMatchSnapshot();
     });
 
     it('should wait for DOM element to appear', async () => {
       const Block = {
         createModel: () => ({}),
         Logic: class TestLogic {
-          @cmd FindNode() {
+          create() {
             return task(Dom.Tasks.findDomNodes)
               .args('#test-id')
-              .success(this.FoundNode);
+              .success(this.foundNode);
           }
-          @cmd FoundNode() {}
+          foundNode = jest.fn()
         }
       };
-      const { app, commands } = await runWithTracking({ app: Block });
-      const prom = app.proc.exec(logicOf(app.model).FindNode);
-      await delay(250);
+      const prom = runWithTracking({ app: Block });
+      await utils.delay(250);
       document.body.appendChild(elem);
-      const res = await prom;
+      await prom;
 
-      expect(commands).toHaveLength(2);
-      expect(commands[1].args[0]).toHaveLength(1);
-      expect(commands[1].args[0][0]).toEqual(elem);
+      expect(prom.commands).toMatchSnapshot();
+      expect(prom.app.proc.logic.foundNode.mock.calls).toMatchSnapshot();
     });
 
     it('should return empty value if no element found', async () => {
       const Block = {
         createModel: () => ({}),
         Logic: class TestLogic {
-          @cmd FindNode() {
+          create() {
             return task(async function() {
-              const { result } = await this.call(Dom.Tasks.findDomNodes, '#test-id');
+              const { result } = await Dom.Tasks.findDomNodes('#test-id');
               return result;
-            }).success(this.FoundNode);
+            }).success(this.foundNode);
           }
-          @cmd FoundNode() {}
+          foundNode = jest.fn()
         }
       };
       const { app, commands } = await runWithTracking({ app: Block });
-      const res = await app.proc.exec(logicOf(app.model).FindNode);
 
-      expect(commands).toHaveLength(2);
-      expect(commands[1].args[0]).toHaveLength(0);
+      expect(commands).toMatchSnapshot();
+      expect(app.proc.logic.foundNode.mock.calls).toMatchSnapshot();
     });
   });
 
@@ -97,16 +90,14 @@ describe('DomUtils', () => {
 
     it('should focus first found element', async () => {
       const Block = {
-        createModel: () => ({}),
         Logic: class TestLogic {
-          @cmd FindNode() {
+          create() {
             return task(Dom.Tasks.focus).args('.input');
           }
         }
       };
       document.body.appendChild(elem);
       const { app, commands } = await runWithTracking({ app: Block });
-      await app.proc.exec(logicOf(app.model).FindNode);
 
       expect(document.activeElement).toEqual(elem.children[0]);
     });
@@ -115,14 +106,13 @@ describe('DomUtils', () => {
       const Block = {
         createModel: () => ({}),
         Logic: class TestLogic {
-          @cmd FindNode() {
+          create() {
             return task(Dom.Tasks.focus).args('.inputNotExists');
           }
         }
       };
       document.body.appendChild(elem);
       const { app, commands } = await runWithTracking({ app: Block });
-      await app.proc.exec(logicOf(app.model).FindNode);
 
       expect(document.activeElement).not.toEqual(elem.children[0]);
     });
@@ -145,9 +135,8 @@ describe('DomUtils', () => {
 
     it('should blur first found element', async () => {
       const Block = {
-        createModel: () => ({}),
         Logic: class TestLogic {
-          @cmd FindNode() {
+          create() {
             return task(Dom.Tasks.blur).args('.input');
           }
         }
@@ -158,16 +147,14 @@ describe('DomUtils', () => {
       expect(document.activeElement).toEqual(elem.children[0]);
 
       const { app, commands } = await runWithTracking({ app: Block });
-      await app.proc.exec(logicOf(app.model).FindNode);
 
       expect(document.activeElement).not.toEqual(elem.children[0]);
     });
 
     it('should do nothing if no element found', async () => {
       const Block = {
-        createModel: () => ({}),
         Logic: class TestLogic {
-          @cmd FindNode() {
+          create() {
             return task(Dom.Tasks.blur).args('.inputNotExists');
           }
         }
@@ -176,7 +163,6 @@ describe('DomUtils', () => {
       document.body.appendChild(elem);
       elem.children[0].focus();
       const { app, commands } = await runWithTracking({ app: Block });
-      await app.proc.exec(logicOf(app.model).FindNode);
 
       expect(document.activeElement).toEqual(elem.children[0]);
     });
