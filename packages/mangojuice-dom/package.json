@@ -21,6 +21,6 @@
     }
   },
   "peerDependencies": {
-    "mangojuice-core": "^1.2.7"
+    "mangojuice-core": "2.x.x"
   }
 }

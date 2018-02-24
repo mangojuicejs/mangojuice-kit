@@ -66,7 +66,7 @@ class Router {
   }
 
   update(msg) {
-    if (msg.is(Messages.LocationChanged)) {
+    if (msg.is(Messages.ChangeLocation)) {
       return this.handleLocationChange(msg.location);
     } else if (msg.is(Messages.Push)) {
       return this.pushLocation(msg.route);
@@ -90,14 +90,14 @@ class Router {
 
     // Yield init location change
     const initLocation = request ? request.location : history.location;
-    yield message(Messages.LocationChanged, initLocation);
+    yield message(Messages.ChangeLocation, initLocation);
 
     // Subscribe to history changes
     if (history) {
       const historyChannel = createYieldableHistory(history);
       while(true) {
         const nextLocation = await historyChannel.next();
-        yield message(Messages.LocationChanged, nextLocation);
+        yield message(Messages.ChangeLocation, nextLocation);
       }
     }
   }
@@ -134,14 +134,17 @@ class Router {
       ? { ...this.model.params, ...firstPath.params }
       : this.model.params;
 
-    return {
-      query: qs.parse(search),
-      params,
-      active,
-      leftRoutes,
-      changedRoutes,
-      appearedOnce
-    };
+    return [
+      {
+        query: qs.parse(search),
+        params,
+        active,
+        leftRoutes,
+        changedRoutes,
+        appearedOnce
+      },
+      message(Messages.LocationChanged, location);
+    ];
   }
 
   pushLocation(route) {

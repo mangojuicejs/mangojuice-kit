@@ -92,7 +92,7 @@
     "rollup-plugin-uglify": "2.0.1",
     "sinon": "^4.1.2",
     "union-type-es": "^0.1.0",
-    "mangojuice-test": "^1.2.7",
-    "mangojuice-core": "^1.2.7"
+    "mangojuice-test": "2.x.x",
+    "mangojuice-core": "2.x.x"
   }
 }
