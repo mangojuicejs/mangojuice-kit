@@ -1,6 +1,7 @@
 import pathToRegexp from "path-to-regexp";
 import qs from 'qs';
-import { utils, logicOf } from "mangojuice-core";
+import { utils, logicOf, procOf, message } from "mangojuice-core";
+import * as Messages from './Messages';
 
 
 /**
@@ -63,8 +64,8 @@ export function createHref(model, meta, route) {
 export function link(model, route) {
   const logic = logicOf(model);
   return {
-    onClick: logic.Push(route),
-    href: createHref(model, logic.meta, route)
+    onClick: () => procOf(model).update(message(Messages.Push, route)),
+    href: createHref(model, logic, route)
   };
 }
 

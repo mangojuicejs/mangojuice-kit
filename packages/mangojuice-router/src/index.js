@@ -1,5 +1,5 @@
 import Logic from "./Logic";
-import { createModel } from "./Model";
+import * as Messages from './Messages';
 import * as Utils from "./Utils";
 
-export default { ...Utils, Logic, createModel };
+export default { ...Utils, Logic, Messages };
